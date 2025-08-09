@@ -1,0 +1,81 @@
+*
+const { Given, When, Then } = require('cucumber');
+const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
+
+Given('que eu estou conectado ao banco de dados', async function() {
+  this.client = new MongoClient('mongodb:                                                                         
+  await this.client.connect();
+  this.db = this.client.db('//localhost:27017', { useNewUrlParser: true, useUnifiedTopology: true });
+  await this.client.connect();
+  this.db = this.client.db('meubanco');
+});
+
+When('eu insiro um novo usuário', async function() {
+  const usuario = {
+    nome: 'João',
+    email: 'joao@example.com',
+    senha: 'senha123'
+  };
+  await this.db.collection('usuarios').insertOne(usuario);
+});
+
+Then('o usuário é criado com sucesso', async function() {
+  const usuario = await this.db.collection('usuarios').findOne({ nome: 'João' });
+  assert.notEqual(usuario, null);
+});
+
+When('eu busco o usuário', async function() {
+  this.usuario = await this.db.collection('usuarios').findOne({ nome: 'João' });
+});
+
+Then('o usuário é encontrado', async function() {
+  assert.notEqual(this.usuario, null);
+});
+
+When('eu atualizo o usuário', async function() {
+  await this.db.collection('usuarios').updateOne({ nome: 'João' }, { $set: { email: 'joao2@example.com' } });
+});
+
+Then('o usuário é atualizado com sucesso', async function() {
+  const usuario = await this.db.collection('usuarios').findOne({ nome: 'João' });
+  assert.equal(usuario.email, 'joao2@example.com');
+});
+
+When('eu deleto o usuário', async function() {
+  await this.db.collection('usuarios').deleteOne({ nome: 'João' });
+});
+
+Then('o usuário é deletado com sucesso', async function() {
+  const usuario = await this.db.collection('usuarios').findOne({ nome: 'João' });
+  assert.equal(usuario, null);
+});
+*Arquivo de Feature:*
+Funcionalidade: Usuário
+  Como administrador
+  Eu quero poder gerenciar usuários
+  Para manter a segurança do sistema
+
+Cenário: Criar usuário
+  Dado que eu estou conectado ao banco de dados
+  Quando eu insiro um novo usuário
+  Então o usuário é criado com sucesso
+
+Cenário: Buscar usuário
+  Dado que eu estou conectado ao banco de dados
+  E eu insiro um novo usuário
+  Quando eu busco o usuário
+  Então o usuário é encontrado
+
+Cenário: Atualizar usuário
+  Dado que eu estou conectado ao banco de dados
+  E eu insiro um novo usuário
+  Quando eu atualizo o usuário
+  Então o usuário é atualizado com sucesso
+
+Cenário: Deletar usuário
+  Dado que eu estou conectado ao banco de dados
+  E eu insiro um novo usuário
+  Quando eu deleto o usuário
+  Então o usuário é deletado com sucesso
+
